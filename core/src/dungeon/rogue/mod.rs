@@ -358,12 +358,14 @@ impl DungeonTrait for Dungeon {
             if skip(&DungeonPath::from(Address::new(cur.level, next))) {
                 continue;
             }
-            let ndist = *dist_map.get_p(next);
-            if ndist == 0 && current_floor.can_move_enemy(cur.cd, d) {
-                return MoveResult::Reach;
-            }
-            if ndist != u32::max_value() && ndist > 0 {
-                cand.push((ndist, next))
+            if let Some(x) = dist_map.get::<(usize, usize)>(next.into()) {
+                let ndist = *x;
+                if ndist == 0 && current_floor.can_move_enemy(cur.cd, d) {
+                    return MoveResult::Reach;
+                }
+                if ndist != u32::max_value() && ndist > 0 {
+                    cand.push((ndist, next))
+                }
             }
         }
         if cand.is_empty() {

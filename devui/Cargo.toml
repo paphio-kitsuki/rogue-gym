@@ -20,6 +20,7 @@ fern = "0.6"
 log = "0.4"
 tuple-map = "0.4"
 chrono = "0.4"
+termion = "1.5"
 
 [target.'cfg(unix)'.dependencies.termion]
 version = "1.5"

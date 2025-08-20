@@ -373,7 +373,9 @@ impl Floor {
         let size = self.field.size();
         let mut array = Array2::from_elem([size.ylen() as usize, size.xlen() as usize], false);
         size.into_iter().for_each(|cd| {
-            *array.get_mut_p(cd) = self.field.get_p(cd).is_visited();
+            if let Some(x) = array.get_mut::<(usize, usize)>(Coord::from(cd).into()) {
+                *x = self.field.get_p(cd).is_visited();
+            }
         });
         array
     }
@@ -397,18 +399,24 @@ impl Floor {
         let inf = u32::max_value();
         let mut dist = Array2::from_elem([h.0 as usize, w.0 as usize], inf);
         let mut queue = VecDeque::new();
-        *dist.get_mut_p(from) = 0;
+        if let Some(x) = dist.get_mut::<(usize, usize)>(from.into()) {
+            *x = 0;
+        }
         queue.push_back(from);
         while let Some(current) = queue.pop_front() {
             for d in Direction::into_enum_iter().take(8) {
                 let next = current + d.to_cd();
-                let cdist = *dist.get_p(current);
-                if let Ok(ndist) = dist.try_get_mut_p(next) {
+                let cdist = *dist.get::<(usize, usize)>(current.into()).unwrap_or(&inf);
+                if let Some(ndist) = dist.get_mut::<(usize, usize)>(next.into()) {
                     if *ndist != inf || self.can_move_impl(current, d, is_enemy) != Some(true) {
                         continue;
                     }
                     queue.push_back(next);
-                    *ndist = cdist + 1;
+                    if cdist == inf {
+                        *ndist = inf;
+                    } else {
+                        *ndist = cdist + 1;
+                    }
                 }
             }
         }
